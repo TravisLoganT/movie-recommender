@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node/React
+node_modules/
+/frontend/build
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Local development
+*.sqlite3
+*.db 
