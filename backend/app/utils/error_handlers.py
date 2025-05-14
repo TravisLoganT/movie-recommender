@@ -6,11 +6,15 @@ class TMDBError(Exception):
     pass
 
 class TMDBAPIError(TMDBError):
-    """Exception for API-specific errors"""
+    """Exception for API-related errors"""
     pass
 
 class TMDBInvalidIDError(TMDBError):
-    """Exception for invalid movie IDs"""
+    """Exception for invalid movie ID"""
+    pass
+
+class TMDBInvalidQueryError(TMDBError):
+    """Exception for invalid search query"""
     pass
 
 def handle_api_response(response: requests.Response) -> None:
@@ -18,32 +22,33 @@ def handle_api_response(response: requests.Response) -> None:
     if response.status_code == 401:
         raise TMDBAPIError("Invalid API key")
     elif response.status_code == 404:
-        raise TMDBInvalidIDError("Resource not found")
-    elif response.status_code == 429:
-        raise TMDBAPIError("Rate limit exceeded")
-    elif response.status_code != 200:
-        raise TMDBAPIError(f"API request failed with status {response.status_code}")
+        raise TMDBAPIError("Resource not found")
+    elif response.status_code >= 500:
+        raise TMDBAPIError("TMDB API server error")
+    elif response.status_code >= 400:
+        raise TMDBAPIError(f"API error: {response.status_code}")
 
 def validate_movie_id(movie_id: int) -> None:
     """Validate movie ID"""
     if not isinstance(movie_id, int) or movie_id <= 0:
-        raise ValueError("Movie ID must be a positive integer")
+        raise TMDBInvalidIDError("Movie ID must be a positive integer")
 
 def validate_search_query(query: str) -> None:
     """Validate search query"""
     if not query or not isinstance(query, str):
-        raise ValueError("Search query must be a non-empty string")
+        raise TMDBInvalidQueryError("Search query must be a non-empty string")
 
 def validate_page_number(page: int) -> None:
     """Validate page number"""
     if not isinstance(page, int) or page < 1:
-        raise ValueError("Page must be a positive integer")
+        raise ValueError("Page number must be a positive integer")
 
-def validate_response_data(data: Dict[str, Any], required_fields: list) -> None:
-    """Validate response data structure"""
-    if not data:
-        raise TMDBAPIError("Empty response from API")
-    for field in required_fields:
-        if field not in data:
-            raise TMDBAPIError(f"Missing required field: {field}")
+def validate_response_data(data: dict, required_fields: list) -> None:
+    """Validate response data has required fields"""
+    if not isinstance(data, dict):
+        raise TMDBAPIError("Invalid response format")
+    
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        raise TMDBAPIError(f"Missing required fields: {', '.join(missing_fields)}")
     

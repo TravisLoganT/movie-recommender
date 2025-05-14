@@ -4,6 +4,8 @@ from typing import Dict, List, Any
 from .error_handlers import (
     TMDBError,
     TMDBAPIError,
+    TMDBInvalidIDError,
+    TMDBInvalidQueryError,
     handle_api_response,
     validate_movie_id,
     validate_search_query,
@@ -30,6 +32,10 @@ class TMDBClient:
             return response.json()
         except requests.exceptions.RequestException as e:
             raise TMDBAPIError(f"Network error: {str(e)}")
+        except TMDBAPIError:
+            raise
+        except Exception as e:
+            raise TMDBError(f"Unexpected error: {str(e)}")
 
     def _format_movie(self, movie: Dict) -> Dict:
         """Format movie data"""
@@ -82,6 +88,8 @@ class TMDBClient:
                 'total_results': data.get('total_results'),
                 'movies': [self._format_movie(movie) for movie in data.get('results', [])]
             }
+        except (TMDBAPIError, TMDBInvalidQueryError) as e:
+            raise
         except Exception as e:
             raise TMDBError(f"Error searching movies: {str(e)}")
 
@@ -94,6 +102,8 @@ class TMDBClient:
             validate_response_data(data, ['id', 'title'])
             
             return self._format_movie_details(data)
+        except (TMDBAPIError, TMDBInvalidIDError) as e:
+            raise
         except Exception as e:
             raise TMDBError(f"Error getting movie details: {str(e)}")
 
@@ -115,6 +125,8 @@ class TMDBClient:
                 'total_results': data.get('total_results'),
                 'movies': [self._format_movie(movie) for movie in data.get('results', [])]
             }
+        except (TMDBAPIError, ValueError) as e:
+            raise
         except Exception as e:
             raise TMDBError(f"Error getting popular movies: {str(e)}")
 
@@ -137,5 +149,7 @@ class TMDBClient:
                 'total_results': data.get('total_results'),
                 'movies': [self._format_movie(movie) for movie in data.get('results', [])]
             }
+        except (TMDBAPIError, TMDBInvalidIDError) as e:
+            raise
         except Exception as e:
             raise TMDBError(f"Error getting movie recommendations: {str(e)}") 
